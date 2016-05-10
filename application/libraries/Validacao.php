@@ -3,9 +3,9 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Classe de validação de documentos
+ * Validation class
  *
- * @package         Credify REST API
+ * @package         Codeigniter RESTful API
  * @subpackage      Libraries
  * @category        Libraries
  * 
@@ -14,34 +14,33 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Validacao {
 
     /**
-     * Função de validação de CPF
+     * CPF (Brazil) validation function
      *
      * @access public
      * @param string|NULL $cpf
      * @return bool
      */
     public function cpf($cpf) {
-        // Verifica se um número foi informado
+        // Check if it was informed
         if (empty($cpf)) {
             return false;
         }
 
-        // Elimina possivel máscara
+        // Eliminate the mask
         $cpf = preg_replace('[^0-9]', '', $cpf);
         $cpf = str_pad($cpf, 11, '0', STR_PAD_LEFT);
 
-        // Verifica se o numero de digitos informados é igual a 11 
+        // Check if the lenght equal to 11 
         if (strlen($cpf) != 11) {
             return false;
         }
-        // Verifica se nenhuma das sequências invalidas abaixo foi digitada. 
-        // Caso afirmativo, retorna falso
+        // Check the cases above. They are all invalid
         else if ($cpf == '00000000000' || $cpf == '11111111111' || $cpf == '22222222222' ||
                  $cpf == '33333333333' || $cpf == '44444444444' || $cpf == '55555555555' ||
                  $cpf == '66666666666' || $cpf == '77777777777' || $cpf == '88888888888' ||
                  $cpf == '99999999999') {
             return false;
-            // Calcula os digitos verificadores para verificar se o CPF é válido
+            // Calculates the verification 2 digit number
         } else {
 
             for ($t = 9; $t < 11; $t++) {
