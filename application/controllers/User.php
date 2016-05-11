@@ -27,52 +27,111 @@ class User extends REST_Controller {
     }
 
     /**
-     * Função de busca de Dados cadastrais do CPF
+     * Retrieve user data
      *
      * @access public
-     * @param integer $_POST['cpf']
+     * @param integer $_GET['id']
+     * @param string $_GET['access_token']
+     * @return void
+     */
+    public function user_get() {
+        $id = $this->get('id');
+        $access_token = $this->post('access_token');
+
+        // In case of empty parameters, error 400 is returned
+        if (!$id || !$access_token || empty($id) || empty($access_token)) {
+            $this->response(array('error' => $this->lang->line('error_empty_parameter')), REST_Controller::HTTP_BAD_REQUEST);
+        } else {
+            // Load of the OAuth library responsible to validate the security token
+            $this->load->library('oauth');
+
+            // Validation token
+            $check = $this->oauth->validate($access_token);
+
+            // If the response is empty, the token in NOT validated
+            if ($check) {
+                $parameters = array();
+                $parameters["cpf"] = $id;
+
+                // Load of the Oracle model
+                $this->load->model('oracle');
+                // Query to retrieve the data
+                $data = $this->oracle->execute('PROCEDURE_GET_USER', $parameters);
+
+                // Calls the function responsible to return the requested data
+                $this->return_data($data);
+            } else {
+                $this->response(array('error' => $this->lang->line('error_invalid_token')), REST_Controller::HTTP_UNAUTHORIZED);
+            }
+        }
+    }
+
+    /**
+     * Insert user function
+     *
+     * @access public
+     * @param integer $_POST['username']
+     * @param integer $_POST['password']
      * @param string $_POST['access_token']
      * @return void
      */
-    public function cpf_post() {
-        $documento = $this->post('cpf');
+    public function user_post() {
+        $username = $this->post('username');
+        $password = $this->post('password');
         $access_token = $this->post('access_token');
 
-        // Caso o parâmetro não seja enviado, retorna erro com código 400
-        if (!$documento || !$access_token || empty($documento) || empty($access_token)) {
+        // In case of empty parameters, error 400 is returned
+        if (!$username || !$access_token || $password || empty($documento) || empty($access_token) || empty($password)) {
             $this->response(array('error' => $this->lang->line('error_empty_parameter')), REST_Controller::HTTP_BAD_REQUEST);
         } else {
-            // Função de validação do CPF
-            $validaCpf = $this->validacao->cpf($documento);
-            // Prossegue somente se o CPF for válido
-            if ($validaCpf) {
-                // Carga da biblioteca responsável pela funções de Token
-                $this->load->library('oauth');
+            // Load of the OAuth library responsible to validate the security token
+            $this->load->library('oauth');
 
-                // Funçao de validaçao do token
-                $valida = $this->oauth->validate($access_token);
+            // Validation token
+            $check = $this->oauth->validate($access_token);
 
-                // Se a resposta da validação for vazia, o token não é válido
-                if ($valida) {
-                    // Inicializa variável dos parâmetros para busca de dados
-                    $parametros = array();
-                    $parametros["cpf"] = $documento;
+            // If the response is empty, the token in NOT validated
+            if ($check) {
+                $parameters = array();
+                $parameters["username"] = $username;
+                $parameters["password"] = $password;
 
-                    // Carga do modelo de acesso aos dados no Oracle
-                    $this->load->model('oracle');
-                    // Procedure para busca de dados
-                    $dados = $this->oracle->execute('PROC_PF_DADOSCADASTRAIS', $parametros);
+                // Load of the Oracle model
+                $this->load->model('oracle');
+                // Query to retrieve insert data
+                $dados = $this->oracle->execute('PROCEDURE_INSERT_USER', $parameters);
 
-                    // Chama pela função que retorna os dados
-                    $this->return_data($dados);
-                } else {
-                    $this->response(array('error' => $this->lang->line('error_invalid_token')), REST_Controller::HTTP_UNAUTHORIZED);
-                }
+                // Calls the function responsible to return the requested data
+                $this->return_data($dados);
             } else {
-                // Se o CPF for inválido retorna erro 400
-                $this->response(array('error' => $this->lang->line('error_invalid_cpf')), REST_Controller::HTTP_BAD_REQUEST);
+                $this->response(array('error' => $this->lang->line('error_invalid_token')), REST_Controller::HTTP_UNAUTHORIZED);
             }
         }
+    }
+
+    /**
+     * Update user function
+     *
+     * @access public
+     * @param integer $_POST['id']
+     * @param integer $_POST['password']
+     * @param string $_POST['access_token']
+     * @return void
+     */
+    public function user_put() {
+        
+    }
+    
+    /**
+     * Delete user function
+     *
+     * @access public
+     * @param integer $_POST['id']
+     * @param string $_POST['access_token']
+     * @return void
+     */
+    public function user_delete() {
+        
     }
 
 }
